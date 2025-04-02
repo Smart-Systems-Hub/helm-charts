@@ -1,0 +1,49 @@
+{{- $fullName := include "bdrs.fullname" . }}
+{{- $controlLabels := include "bdrs.server.labels" . }}
+{{- $controlEdcEndpoints := .Values.server.endpoints }}
+{{- $gitVersion := .Capabilities.KubeVersion.GitVersion }}
+{{- $namespace := .Release.Namespace }}
+
+{{- range .Values.server.apirules }}
+{{- if and .enabled .endpoints }}
+{{- $controlIngressName := printf "%s" .name }}
+{{- $annotations := .annotations | default dict }}
+---
+apiVersion: gateway.kyma-project.io/v2alpha1
+kind: APIRule
+metadata:
+  name: {{ $controlIngressName }}
+  namespace: {{ $namespace | default "default" | quote }}
+  labels:
+    {{- $controlLabels | nindent 4 }}
+spec:
+  {{- if .gateway }}
+  gateway: {{ .gateway }}
+  {{- else }}
+  {{ fail "Gateway not specified. Failing the pipeline." }}
+  {{- end }}
+  {{- if .hostname }}
+  {{- if .corsPolicy }}
+  corsPolicy: 
+    {{- with .corsPolicy }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  hosts:
+    - {{ .hostname }}
+  rules:
+    {{- $apiruleEdcEndpoints := .endpoints }}
+    {{- range  $name, $mapping := $controlEdcEndpoints }}
+    {{- if (has $name $apiruleEdcEndpoints) }}
+    - path: {{ $mapping.path }}/{**}
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "TRACE"]
+      noAuth: true
+      service:
+        name: {{ $fullName }}
+        namespace: {{ $namespace }}
+        port: {{ $mapping.port }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}{{- /* end: if .enabled */}}
+{{- end }}{{- /* end: range .Values.apirules */}}

@@ -1,0 +1,52 @@
+{{- $fullName := include "txdc.fullname" . }}
+{{- $dataLabels := include "txdc.controlplane.labels" . }}
+{{- $dataEdcEndpoints := .Values.controlplane.endpoints }}
+{{- $namespace := .Release.Namespace }}
+
+{{- range .Values.controlplane.apirules }}
+{{- if and .enabled .endpoints }}
+{{- $dataApiRuleName := printf "%s" .name }}
+{{- $annotations := .annotations | default dict }}
+---
+apiVersion: gateway.kyma-project.io/v2alpha1
+kind: APIRule
+metadata:
+  name: {{ $dataApiRuleName }}
+  namespace: {{ $namespace | default "default" | quote }}
+  labels:
+    {{- $dataLabels | nindent 4 }}
+  annotations:
+    {{- with $annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if .gateway }}
+  gateway: {{ .gateway }}
+  {{- else }}
+  {{ fail "Gateway not specified. Failing the pipeline." }}
+  {{- end }}
+  {{- if .hostname }}
+  {{- if .corsPolicy }}
+  corsPolicy: 
+    {{- with .corsPolicy }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  hosts:
+    - {{ .hostname }}
+  rules:
+    {{- $apiruleEdcEndpoints := .endpoints }}
+    {{- range  $name, $mapping := $dataEdcEndpoints }}
+    {{- if (has $name $apiruleEdcEndpoints) }}
+    - path: {{ $mapping.path }}/{**}
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "TRACE"]
+      noAuth: true
+      service:
+        name: {{ $fullName }}-controlplane
+        namespace: {{ $namespace }}
+        port: {{ $mapping.port }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}{{- /* end: if .enabled */}}
+{{- end }}{{- /* end: range .Values.apirules */}}
