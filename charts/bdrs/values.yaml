@@ -321,7 +321,7 @@ postgresql:
   jdbcUrl: "jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/bdrs"
   primary:
     persistence:
-      enabled: false
+      enabled: true
     resources:
       limits:
         cpu: 1
@@ -331,7 +331,7 @@ postgresql:
         memory: 256Mi
   readReplicas:
     persistence:
-      enabled: false
+      enabled: true
     resources:
       limits:
         cpu: 500Mi
