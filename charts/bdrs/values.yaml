@@ -139,7 +139,7 @@ server:
     runAsUser: 10001
   # Extra environment variables that will be pass onto deployment pods
   env:
-    EDC_DATASOURCE_DIDENTRY_URL: "jdbc:postgresql://bdrs-postgresql:5432/bdrs"
+    EDC_DATASOURCE_DIDENTRY_URL: "jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/bdrs"
     EDC_DATASOURCE_DIDENTRY_USER: bdrs
     EDC_DATASOURCE_DIDENTRY_PASSWORD: password
 
