@@ -45,6 +45,13 @@ spec:
         name: {{ $fullName }}-dataplane
         namespace: {{ $namespace }}
         port: {{ $mapping.port }}
+    - path: {{ $mapping.path }}
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "TRACE"]
+      noAuth: true
+      service:
+        name: {{ $fullName }}-dataplane
+        namespace: {{ $namespace }}
+        port: {{ $mapping.port }}
     {{- end }}
   {{- end }}
   {{- end }}
