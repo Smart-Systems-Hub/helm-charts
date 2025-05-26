@@ -23,7 +23,7 @@
 
 {{- if .Values.controlplane.autoscaling.enabled }}
 ---
-apiVersion: autoscaling/v2beta1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "txdc.fullname" . }}-controlplane
