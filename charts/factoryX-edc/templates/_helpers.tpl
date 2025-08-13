@@ -7,8 +7,6 @@ Expand the name of the chart.
 
 {{/*
 Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
 */}}
 {{- define "txdc.fullname" -}}
 {{- if .Values.fullnameOverride }}
@@ -31,7 +29,7 @@ Create chart name and version as used by the chart label.
 {{- end }}
 
 {{/*
-Control Common labels
+Common labels
 */}}
 {{- define "txdc.labels" -}}
 helm.sh/chart: {{ include "txdc.chart" . }}
@@ -42,7 +40,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
-Control Common labels
+Control plane labels
 */}}
 {{- define "txdc.controlplane.labels" -}}
 helm.sh/chart: {{ include "txdc.chart" . }}
@@ -56,7 +54,7 @@ app.kubernetes.io/part-of: edc
 {{- end }}
 
 {{/*
-Data Common labels
+Data plane labels
 */}}
 {{- define "txdc.dataplane.labels" -}}
 helm.sh/chart: {{ include "txdc.chart" . }}
@@ -70,7 +68,7 @@ app.kubernetes.io/part-of: edc
 {{- end }}
 
 {{/*
-Control Selector labels
+Control plane selector labels
 */}}
 {{- define "txdc.controlplane.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "txdc.name" . }}-controlplane
@@ -78,7 +76,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}-controlplane
 {{- end }}
 
 {{/*
-Data Selector labels
+Data plane selector labels
 */}}
 {{- define "txdc.dataplane.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "txdc.name" . }}-dataplane
@@ -86,7 +84,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}-dataplane
 {{- end }}
 
 {{/*
-Create the name of the service account to use
+Control plane service account name
 */}}
 {{- define "txdc.controlplane.serviceaccount.name" -}}
 {{- if .Values.serviceAccount.create }}
@@ -97,7 +95,7 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Create the name of the service account to use
+Data plane service account name
 */}}
 {{- define "txdc.dataplane.serviceaccount.name" -}}
 {{- if .Values.serviceAccount.create }}
@@ -108,74 +106,7 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Control DSP URL
-*/}}
-{{- define "txdc.controlplane.url.protocol" -}}
-{{- if .Values.controlplane.url.protocol }}{{/* if dsp api url has been specified explicitly */}}
-{{- .Values.controlplane.url.protocol }}
-{{- else if (index  .Values.controlplane.ingresses 0).enabled }}
-{{- with (index  .Values.controlplane.ingresses 0) }}
-{{- if .tls.enabled }}{{/* if TLS enabled */}}
-{{- printf "https://%s" .hostname -}}
-{{- else }}{{/* else when TLS not enabled */}}
-{{- printf "http://%s" .hostname -}}
-{{- end }}{{/* end if tls */}}
-{{- end }}{{/* end with ingress */}}
-{{- else if (index  .Values.controlplane.apirules 0).enabled}}
-{{- with (index  .Values.controlplane.apirules 0) }}
-{{- printf "https://%s" .hostname -}}
-{{- end }}{{/* end with apirules */}}
-{{- else }}{{/* else when ingress not enabled */}}
-{{- printf "http://%s-controlplane:%v" ( include "txdc.fullname" $ ) $.Values.controlplane.endpoints.protocol.port -}}
-{{- end }}{{/* end if .Values.controlplane.url.public */}}
-{{- end }}
-
-{{/*
-Validation URL
-*/}}
-{{- define "txdc.controlplane.url.validation" -}}
-{{- printf "%s/token" ( include "txdc.controlplane.url.control" $ ) -}}
-{{- end }}
-
-{{/*
-Control Plane Control URL
-*/}}
-{{- define "txdc.controlplane.url.control" -}}
-{{- printf "http://%s-controlplane:%v%s" ( include "txdc.fullname" $ ) $.Values.controlplane.endpoints.control.port $.Values.controlplane.endpoints.control.path -}}
-{{- end }}
-
-{{/*
-Data Plane Control URL
-*/}}
-{{- define "txdc.dataplane.url.control" -}}
-{{- printf "http://%s-dataplane:%v%s" ( include "txdc.fullname" $ ) $.Values.dataplane.endpoints.control.port $.Values.dataplane.endpoints.control.path -}}
-{{- end }}
-
-{{/*
-Data Public URL
-*/}}
-{{- define "txdc.dataplane.url.public" -}}
-{{- if .Values.dataplane.url.public }}{{/* if public api url has been specified explicitly */}}
-{{- .Values.dataplane.url.public }}
-{{- else if (index  .Values.dataplane.ingresses 0).enabled }}
-{{- with (index  .Values.dataplane.ingresses 0) }}
-{{- if .tls.enabled }}{{/* if TLS enabled */}}
-{{- printf "https://%s%s" .hostname $.Values.dataplane.endpoints.public.path -}}
-{{- else }}{{/* else when TLS not enabled */}}
-{{- printf "http://%s%s" .hostname $.Values.dataplane.endpoints.public.path -}}
-{{- end }}{{/* end if tls */}}
-{{- end }}{{/* end with ingress */}}
-{{- else if (index  .Values.dataplane.apirules 0).enabled}}
-{{- with (index  .Values.dataplane.apirules 0) }}
-{{- printf "https://%s%s" .hostname $.Values.dataplane.endpoints.public.path -}}
-{{- end }}{{/* end with apirules */}}
-{{- else }}{{/* else when ingress not enabled */}}
-{{- printf "http://%s-dataplane:%v%s" (include "txdc.fullname" $ ) $.Values.dataplane.endpoints.public.port $.Values.dataplane.endpoints.public.path -}}
-{{- end }}{{/* end if .Values.dataplane.url.public */}}
-{{- end }}
-
-{{/*
-Create the name of the service account to use
+Generic service account name
 */}}
 {{- define "txdc.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
@@ -183,4 +114,126 @@ Create the name of the service account to use
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
+{{- end }}
+
+{{/*
+Control plane URL helpers
+*/}}
+{{- define "txdc.controlplane.url.protocol" -}}
+{{- if .Values.controlplane.url.protocol }}
+{{- .Values.controlplane.url.protocol }}
+{{- else }}
+{{- with (index .Values.controlplane.ingresses 0) }}
+{{- if .enabled }}
+{{- if .tls.enabled }}
+{{- printf "https://%s" .hostname -}}
+{{- else }}
+{{- printf "http://%s" .hostname -}}
+{{- end }}
+{{- else }}
+{{- printf "http://%s-controlplane:%v" ( include "txdc.fullname" $ ) $.Values.controlplane.endpoints.protocol.port -}}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "txdc.controlplane.url.control" -}}
+{{- printf "http://%s-controlplane:%v%s" ( include "txdc.fullname" $ ) $.Values.controlplane.endpoints.control.port $.Values.controlplane.endpoints.control.path -}}
+{{- end }}
+
+{{- define "txdc.controlplane.url.validation" -}}
+{{- printf "%s/token" ( include "txdc.controlplane.url.control" $ ) -}}
+{{- end }}
+
+{{/*
+Data plane URL helpers
+*/}}
+{{- define "txdc.dataplane.url.control" -}}
+{{- printf "http://%s-dataplane:%v%s" ( include "txdc.fullname" $ ) $.Values.dataplane.endpoints.control.port $.Values.dataplane.endpoints.control.path -}}
+{{- end }}
+
+{{- define "txdc.dataplane.url.public" -}}
+{{- if .Values.dataplane.url.public }}
+{{- .Values.dataplane.url.public }}
+{{- else }}
+{{- with (index  .Values.dataplane.ingresses 0) }}
+{{- if .enabled }}
+{{- if .tls.enabled }}
+{{- printf "https://%s%s" .hostname $.Values.dataplane.endpoints.public.path -}}
+{{- else }}
+{{- printf "http://%s%s" .hostname $.Values.dataplane.endpoints.public.path -}}
+{{- end }}
+{{- else }}
+{{- printf "http://%s-dataplane:%v%s" (include "txdc.fullname" $ ) $.Values.dataplane.endpoints.public.port $.Values.dataplane.endpoints.public.path -}}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/* =====================
+      FXDC aliases
+====================== */}}
+
+{{- define "fxdc.name" -}}
+{{- include "txdc.name" . -}}
+{{- end }}
+
+{{- define "fxdc.fullname" -}}
+{{- include "txdc.fullname" . -}}
+{{- end }}
+
+{{- define "fxdc.chart" -}}
+{{- include "txdc.chart" . -}}
+{{- end }}
+
+{{- define "fxdc.labels" -}}
+{{- include "txdc.labels" . -}}
+{{- end }}
+
+{{- define "fxdc.controlplane.labels" -}}
+{{- include "txdc.controlplane.labels" . -}}
+{{- end }}
+
+{{- define "fxdc.dataplane.labels" -}}
+{{- include "txdc.dataplane.labels" . -}}
+{{- end }}
+
+{{- define "fxdc.controlplane.selectorLabels" -}}
+{{- include "txdc.controlplane.selectorLabels" . -}}
+{{- end }}
+
+{{- define "fxdc.dataplane.selectorLabels" -}}
+{{- include "txdc.dataplane.selectorLabels" . -}}
+{{- end }}
+
+{{- define "fxdc.controlplane.serviceaccount.name" -}}
+{{- include "txdc.controlplane.serviceaccount.name" . -}}
+{{- end }}
+
+{{- define "fxdc.dataplane.serviceaccount.name" -}}
+{{- include "txdc.dataplane.serviceaccount.name" . -}}
+{{- end }}
+
+{{- define "fxdc.serviceAccountName" -}}
+{{- include "txdc.serviceAccountName" . -}}
+{{- end }}
+
+{{- define "fxdc.controlplane.url.protocol" -}}
+{{- include "txdc.controlplane.url.protocol" . -}}
+{{- end }}
+
+{{- define "fxdc.controlplane.url.control" -}}
+{{- include "txdc.controlplane.url.control" . -}}
+{{- end }}
+
+{{- define "fxdc.controlplane.url.validation" -}}
+{{- include "txdc.controlplane.url.validation" . -}}
+{{- end }}
+
+{{- define "fxdc.dataplane.url.control" -}}
+{{- include "txdc.dataplane.url.control" . -}}
+{{- end }}
+
+{{- define "fxdc.dataplane.url.public" -}}
+{{- include "txdc.dataplane.url.public" . -}}
 {{- end }}
