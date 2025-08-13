@@ -30,7 +30,7 @@ entries:
     appVersion: 0.1.0
     created: "2025-08-13T12:00:00Z"
     description: Factory-X Connector chart with Smart-Systems-Hub custom templates
-    digest: 9eb614ab3724ebb09a2facaa94a19e4425481820fa7186de00ad126be507ad77
+    digest: c60d1c931340f64ff38bc07e5483a7c466175af235600e54c00333fcfe1b30c1
     home: https://github.com/Smart-Systems-Hub/helm-charts/tree/main/charts/factoryx-connector
     name: factoryx-connector
     sources:
