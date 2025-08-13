@@ -25,6 +25,20 @@ entries:
     urls:
     - https://github.com/Smart-Systems-Hub/helm-charts/releases/download/bdrs-server-0.5.4/bdrs-server-0.5.4.tgz
     version: 0.5.4
+  factoryx-connector:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-08-13T12:00:00Z"
+    description: Factory-X Connector chart with Smart-Systems-Hub custom templates
+    digest: 5206cf4ed260b9e87bef1dd3f2e2b2c8e86cfc7f234ad375d3906af485123f94
+    home: https://github.com/Smart-Systems-Hub/helm-charts/tree/main/charts/factoryx-connector
+    name: factoryx-connector
+    sources:
+      - https://github.com/factory-x-contributions/factoryx-edc/tree/main/charts/factoryx-connector
+    type: application
+    urls:
+      - https://github.com/Smart-Systems-Hub/helm-charts/releases/download/factoryx-connector-0.1.1/factoryx-connector-0.1.1.tgz
+    version: 0.1.1
   tractusx-connector:
   - apiVersion: v2
     appVersion: 0.9.1
