@@ -1,0 +1,90 @@
+#################################################################################
+#  Copyright (c) 2025 SAP SE
+#
+#  See the NOTICE file(s) distributed with this work for additional
+#  information regarding copyright ownership.
+#
+#  This program and the accompanying materials are made available under the
+#  terms of the Apache License, Version 2.0 which is available at
+#  https://www.apache.org/licenses/LICENSE-2.0.
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#  License for the specific language governing permissions and limitations
+#  under the License.
+#
+#  SPDX-License-Identifier: Apache-2.0
+#################################################################################
+
+{{ if eq (.Values.vaultseed.enabled | toString) "true" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-vaultseed"
+  labels:
+    app: "{{ .Release.Name }}-vaultseed"
+spec:
+  backoffLimit: {{ .Values.vaultseed.backoffLimit | default 3 }}
+  ttlSecondsAfterFinished: {{ .Values.vaultseed.ttlSecondsAfterFinished | default 90 }}
+  completions: {{ .Values.vaultseed.completions | default 1 }}
+  parallelism: {{ .Values.vaultseed.parallelism | default 1 }}
+  template:
+    spec:
+      initContainers:
+        - name: "{{ .Release.Name }}-genkey"
+          image: "{{ .Values.vaultseed.key.image.repository }}:{{ .Values.vaultseed.key.image.tag }}"
+          imagePullPolicy: "{{ .Values.vaultseed.key.image.pullPolicy }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              mkdir -p /keypair
+              openssl genpkey -algorithm ED25519 -out /keypair/dataplane_private_key.pem
+              openssl pkey -in /keypair/dataplane_private_key.pem -pubout -out /keypair/dataplane_public_key.pem
+          volumeMounts:
+            - name: keypair
+              mountPath: /keypair
+
+      containers:
+        - name: "{{ .Release.Name }}-vaultseed"
+          image: "{{ .Values.vaultseed.image.repository | default .Values.vault.server.image.repository |  }}:{{ .Values.vaultseed.image.tag | default .Values.vault.server.image.tag }}"
+          imagePullPolicy: "{{ .Values.vaultseed.image.pullPolicy }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              vault login $VAULT_TOKEN
+              # Put generated private / public key pair into vault
+              vault kv put secret/{{ .Values.dataplane.token.signer.privatekey_alias }} content=@/keypair/dataplane_private_key.pem
+              vault kv put secret/{{ .Values.dataplane.token.verifier.publickey_alias }} content=@/keypair/dataplane_public_key.pem
+              {{- range .Values.vaultseed.secrets }}
+              {{- if .value }}
+              vault kv put secret/'{{ .key }}' content='{{ .value }}'
+              {{- else if .valueFrom }}
+              {{- $fileContent := $.Files.Get .valueFrom }}
+              {{- if $fileContent }}
+              vault kv put secret/{{ .key }} content='{{ $fileContent | nindent 14 }}'
+              {{- end }}
+              {{- end }}
+              {{- end }}
+          volumeMounts:
+            - name: keypair
+              mountPath: /keypair
+          env:
+            - name: VAULT_ADDR
+              value: {{ tpl .Values.vault.hashicorp.url . | quote }}
+            - name: VAULT_TOKEN
+              value: {{ .Values.vault.hashicorp.token | quote }}
+
+            # Additional environment values
+            {{- range $key, $value := .Values.vaultseed.env }}
+            - name: {{ $key | quote }}
+              value: {{ $value | quote }}
+            {{- end }}
+      volumes:
+        - name: keypair
+          emptyDir: {}
+      restartPolicy: OnFailure
+---
+{{- end }}
