@@ -320,7 +320,7 @@ tests:
 postgresql:
   image:
     repository: "bitnamilegacy/postgresql"
-    tag: "16.2.0-debian-12-r10"
+    tag: "15.4.0-debian-11-r45"
   jdbcUrl: "jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/bdrs"
   primary:
     persistence:

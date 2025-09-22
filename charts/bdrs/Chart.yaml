@@ -1,5 +1,5 @@
 apiVersion: v2
-appVersion: 0.5.5
+appVersion: 0.5.6
 dependencies:
 - alias: postgresql
   condition: install.postgresql
@@ -17,4 +17,4 @@ name: bdrs-server
 sources:
 - https://github.com/eclipse-tractusx/bpn-did-resolution-service/tree/main/charts/bdrs-server
 type: application
-version: 0.5.5
+version: 0.5.6
