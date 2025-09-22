@@ -2,6 +2,30 @@ apiVersion: v1
 entries:
   bdrs-server:
   - apiVersion: v2
+    appVersion: 0.5.6
+    created: "2025-09-22T12:33:51.180480732Z"
+    dependencies:
+    - alias: postgresql
+      condition: install.postgresql
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 12.11.2
+    - alias: vault
+      condition: install.vault
+      name: vault
+      repository: https://helm.releases.hashicorp.com
+      version: 0.28.0
+    description: A Helm chart for the Tractus-X BPN-DID Resolution Service
+    digest: 49a550af43c083573394b69dd2a2314e89da57a7ff20776f95c77b8a36fcd244
+    home: https://github.com/eclipse-tractusx/bpn-did-resolution-service/tree/main/charts/bdrs-server
+    name: bdrs-server
+    sources:
+    - https://github.com/eclipse-tractusx/bpn-did-resolution-service/tree/main/charts/bdrs-server
+    type: application
+    urls:
+    - https://github.com/Smart-Systems-Hub/helm-charts/releases/download/bdrs-server-0.5.6/bdrs-server-0.5.6.tgz
+    version: 0.5.6
+  - apiVersion: v2
     appVersion: 0.5.5
     created: "2025-09-17T10:40:36.937471943Z"
     dependencies:
@@ -204,4 +228,4 @@ entries:
     urls:
     - https://github.com/Smart-Systems-Hub/helm-charts/releases/download/tractusx-connector-0.9.0/tractusx-connector-0.9.0.tgz
     version: 0.9.0
-generated: "2025-09-17T10:40:36.937510095Z"
+generated: "2025-09-22T12:33:51.18050078Z"
