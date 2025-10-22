@@ -41,12 +41,16 @@ spec:
     - type: Resource
       resource:
         name: cpu
-        targetAverageUtilization: {{ .Values.dataplane.autoscaling.targetCPUUtilizationPercentage }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.dataplane.autoscaling.targetCPUUtilizationPercentage }}
     {{- end }}
     {{- if .Values.dataplane.autoscaling.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
-        targetAverageUtilization: {{ .Values.dataplane.autoscaling.targetMemoryUtilizationPercentage }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.dataplane.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
 {{- end }}
