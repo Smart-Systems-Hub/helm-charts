@@ -156,38 +156,40 @@ spec:
             #######
 
           {{- if .Values.controlplane.endpoints.management.jwksUrl }}
-            - name: "EDC_API_AUTH_DAC_KEY_URL"
-              value: {{ .Values.controlplane.endpoints.management.jwksUrl | quote }}
+          - name: "WEB_HTTP_MANAGEMENT_AUTH_DAC_KEY_URL"
+            value: {{ .Values.controlplane.endpoints.management.jwksUrl | quote }}
           {{- else }}
-            - name: "EDC_API_AUTH_KEY"
-              value: {{ .Values.controlplane.endpoints.management.authKey | required ".Values.controlplane.endpoints.management.authKey is required" | quote }}
+          - name: "WEB_HTTP_MANAGEMENT_AUTH_KEY"
+            value: {{ .Values.controlplane.endpoints.management.authKey | required ".Values.controlplane.endpoints.management.authKey is required" | quote }}
           {{- end }}
-            - name: "WEB_HTTP_DEFAULT_PORT"
-              value: {{ .Values.controlplane.endpoints.default.port | quote }}
-            - name: "WEB_HTTP_DEFAULT_PATH"
-              value: {{ .Values.controlplane.endpoints.default.path | quote }}
-            - name: "WEB_HTTP_MANAGEMENT_PORT"
-              value: {{ .Values.controlplane.endpoints.management.port | quote }}
-            - name: "WEB_HTTP_MANAGEMENT_PATH"
-              value: {{ .Values.controlplane.endpoints.management.path | quote }}
-            - name: "WEB_HTTP_CONTROL_PORT"
-              value: {{ .Values.controlplane.endpoints.control.port | quote }}
-            - name: "WEB_HTTP_CONTROL_PATH"
-              value: {{ .Values.controlplane.endpoints.control.path | quote }}
-            - name: "WEB_HTTP_PROTOCOL_PORT"
-              value: {{ .Values.controlplane.endpoints.protocol.port | quote }}
-            - name: "WEB_HTTP_PROTOCOL_PATH"
-              value: {{ .Values.controlplane.endpoints.protocol.path | quote }}
-            - name: "EDC_CONTROL_ENDPOINT"
-              value: {{ include "fxdc.controlplane.url.control" .}}
-            - name: "WEB_HTTP_CATALOG_PORT"
-              value: {{ .Values.controlplane.endpoints.catalog.port | quote }}
-            - name: "WEB_HTTP_CATALOG_PATH"
-              value: {{ .Values.controlplane.endpoints.catalog.path | quote }}
-            - name: "WEB_HTTP_CATALOG_AUTH_TYPE"
-              value: "tokenbased"
-            - name: "WEB_HTTP_CATALOG_AUTH_KEY"
-              value: {{ .Values.controlplane.endpoints.catalog.authKey | required ".Values.controlplane.endpoints.catalog.authKey is required" | quote }}
+          - name: "WEB_HTTP_MANAGEMENT_AUTH_TYPE"
+            value: "tokenbased"
+          - name: "WEB_HTTP_DEFAULT_PORT"
+            value: {{ .Values.controlplane.endpoints.default.port | quote }}
+          - name: "WEB_HTTP_DEFAULT_PATH"
+            value: {{ .Values.controlplane.endpoints.default.path | quote }}
+          - name: "WEB_HTTP_MANAGEMENT_PORT"
+            value: {{ .Values.controlplane.endpoints.management.port | quote }}
+          - name: "WEB_HTTP_MANAGEMENT_PATH"
+            value: {{ .Values.controlplane.endpoints.management.path | quote }}
+          - name: "WEB_HTTP_CONTROL_PORT"
+            value: {{ .Values.controlplane.endpoints.control.port | quote }}
+          - name: "WEB_HTTP_CONTROL_PATH"
+            value: {{ .Values.controlplane.endpoints.control.path | quote }}
+          - name: "WEB_HTTP_PROTOCOL_PORT"
+            value: {{ .Values.controlplane.endpoints.protocol.port | quote }}
+          - name: "WEB_HTTP_PROTOCOL_PATH"
+            value: {{ .Values.controlplane.endpoints.protocol.path | quote }}
+          - name: "EDC_CONTROL_ENDPOINT"
+            value: {{ include "fxdc.controlplane.url.control" .}}
+          - name: "WEB_HTTP_CATALOG_PORT"
+            value: {{ .Values.controlplane.endpoints.catalog.port | quote }}
+          - name: "WEB_HTTP_CATALOG_PATH"
+            value: {{ .Values.controlplane.endpoints.catalog.path | quote }}
+          - name: "WEB_HTTP_CATALOG_AUTH_TYPE"
+            value: "tokenbased"
+          - name: "WEB_HTTP_CATALOG_AUTH_KEY"
+            value: {{ .Values.controlplane.endpoints.catalog.authKey | required ".Values.controlplane.endpoints.catalog.authKey is required" | quote }}
 
             #########
             ## DSP ##
