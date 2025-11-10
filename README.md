@@ -95,3 +95,4 @@ helm show values smart-systems-hub/{chart_name}
 
 ## Support
 For issues with these charts, please create an issue in this repository.
+
