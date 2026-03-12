@@ -173,6 +173,34 @@ entries:
     version: 0.1.1
   tractusx-connector:
   - apiVersion: v2
+    appVersion: 0.12.0
+    created: "2026-03-12T14:18:54.763010605Z"
+    dependencies:
+    - alias: vault
+      condition: install.vault
+      name: vault
+      repository: https://helm.releases.hashicorp.com
+      version: 0.27.0
+    - alias: postgresql
+      condition: install.postgresql
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 15.2.1
+    description: 'A Helm chart for Tractus-X Eclipse Data Space Connector. The connector
+      deployment consists of two runtime consists of a Control Plane and a Data Plane.
+      Note that _no_ external dependencies such as a PostgreSQL database and HashiCorp
+      Vault are included.  This chart is intended for use with an _existing_ PostgreSQL
+      database and an _existing_ HashiCorp Vault. '
+    digest: 19644df17f5ae4048eff85f8e23486da566a383fe12c229d7e48c3dde61e7d55
+    home: https://github.com/eclipse-tractusx/tractusx-edc/tree/main/charts/tractusx-connector
+    name: tractusx-connector
+    sources:
+    - https://github.com/eclipse-tractusx/tractusx-edc/tree/main/charts/tractusx-connector
+    type: application
+    urls:
+    - https://github.com/Smart-Systems-Hub/helm-charts/releases/download/tractusx-connector-0.12.0/tractusx-connector-0.12.0.tgz
+    version: 0.12.0
+  - apiVersion: v2
     appVersion: 0.11.3
     created: "2025-11-08T22:28:38.196876344Z"
     dependencies:
@@ -368,4 +396,4 @@ entries:
     urls:
     - https://github.com/Smart-Systems-Hub/helm-charts/releases/download/tractusx-connector-0.9.0/tractusx-connector-0.9.0.tgz
     version: 0.9.0
-generated: "2025-11-08T22:28:38.196919094Z"
+generated: "2026-03-12T14:18:54.763035975Z"
