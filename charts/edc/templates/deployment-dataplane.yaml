@@ -219,7 +219,7 @@ spec:
             {{- if .Values.vault.hashicorp.paths.folder }}
             - name: "EDC_VAULT_HASHICORP_FOLDER"
               value: {{ .Values.vault.hashicorp.paths.folder | quote }}
-            {{  end }}
+            {{- end }}
 
             #############################
             ## IATP / STS / DIM CONFIG ##
