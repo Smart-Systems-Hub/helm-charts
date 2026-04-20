@@ -1,5 +1,5 @@
-{{- $fullName := include "txdc.fullname" . }}
-{{- $dataLabels := include "txdc.controlplane.labels" . }}
+{{- $fullName := include "fxdc.fullname" . }}
+{{- $dataLabels := include "fxdc.controlplane.labels" . }}
 {{- $dataEdcEndpoints := .Values.controlplane.endpoints }}
 {{- $namespace := .Release.Namespace }}
 

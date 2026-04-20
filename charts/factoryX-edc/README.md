@@ -1,6 +1,6 @@
 # factoryx-connector
 
-![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.1](https://img.shields.io/badge/AppVersion-0.1.1-informational?style=flat-square)
+![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.3.0](https://img.shields.io/badge/AppVersion-0.3.0-informational?style=flat-square)
 
 A Helm chart for Factory-X Eclipse Data Space Connector. The connector deployment consists of two runtimes of a
 Control Plane and a Data Plane. Note that _no_ external dependencies such as a PostgreSQL database and HashiCorp Vault are included.
@@ -9,14 +9,12 @@ This chart is intended for use with an _existing_ PostgreSQL database and an _ex
 
 **Homepage:** <https://github.com/factory-x-contributions/factoryx-edc/tree/main/charts/factoryx-connector>
 
-## Setting up IATP
+## Setting up DCP
 
 ### Preconditions
 
-- You'll need an account with DIM, the wallet for VerifiableCredentials
-- the necessary set of VerifiableCredentials for this participant must already be issued to your DIM tenant. This is typically done by the
-  Portal during participant onboarding
-- the client ID and client secret corresponding to that account must be known
+- You'll need an a DCP-compatible wallet for VerifiableCredentials with an STS incl OAuth2 Credentials and DID Doc.
+- The necessary set of VerifiableCredentials for this participant must already be issued to your wallet. This is typically done by a trusted issuer which may be identical with the Data Provider.
 
 ### Preparatory work
 
@@ -35,12 +33,12 @@ Be sure to provide the following configuration entries to your Factory-X EDC Hel
 ### Launching the application
 
 As an easy starting point, please consider using [this example configuration](../../edc-tests/deployment/src/main/resources/helm/tractusx-connector-test.yaml)
-to launch the application. The configuration values mentioned above (`controlplane.ssi.*`) will have to be adapted manually.
+to launch the application. The configuration values mentioned above (`controlplane.iatp.*`) will have to be adapted manually.
 Combined, run this shell command to start the Factory-X EDC runtime:
 
 ```shell
 helm repo add factoryx-dev https://factory-x-contributions.github.io/charts/dev
-helm install my-release factory-x-contributions/factoryx-connector --version 0.1.1 \
+helm install my-release factory-x-contributions/factoryx-connector --version 0.3.0 \
      -f <path-to>/tractusx-connector-test.yaml
 ```
 
@@ -139,6 +137,7 @@ helm install my-release factory-x-contributions/factoryx-connector --version 0.1
 | controlplane.podSecurityContext.runAsGroup | int | `10001` | Processes within a pod will belong to this guid |
 | controlplane.podSecurityContext.runAsUser | int | `10001` | Runs all processes within a pod with a special uid |
 | controlplane.podSecurityContext.seccompProfile.type | string | `"RuntimeDefault"` | Restrict a Container's Syscalls with seccomp |
+| controlplane.policy | object | `{"validation":{"enabled":true}}` | configuration for policy engine |
 | controlplane.readinessProbe.enabled | bool | `true` | Whether to enable kubernetes [readiness-probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) |
 | controlplane.readinessProbe.failureThreshold | int | `6` | when a probe fails kubernetes will try 6 times before giving up |
 | controlplane.readinessProbe.initialDelaySeconds | int | `30` | seconds to wait before performing the first readiness check |
@@ -260,27 +259,38 @@ helm install my-release factory-x-contributions/factoryx-connector --version 0.1
 | dataplane.volumeMounts | string | `nil` | declare where to mount [volumes](https://kubernetes.io/docs/concepts/storage/volumes/) into the container |
 | dataplane.volumes | string | `nil` | [volume](https://kubernetes.io/docs/concepts/storage/volumes/) directories |
 | fullnameOverride | string | `""` |  |
+| iatp.cache.enabled | bool | `true` | Whether the Verifiable Presentation cache is enabled |
+| iatp.cache.validity | int | `86400` | Validity of the Verifiable Presentation cache in seconds |
+| iatp.didService.selfRegistration.enabled | bool | `false` | Whether Service Self Registration is enabled |
+| iatp.didService.selfRegistration.id | string | `"did:web:changeme"` | Unique id of connector to be used for register / unregister service inside did document (must be valid URI) |
 | iatp.sts.dim.url | string | `nil` | URL where connectors can request SI tokens |
 | iatp.sts.oauth.client.id | string | `"client-id"` | Client ID for requesting OAuth2 access token for DIM access |
 | iatp.sts.oauth.client.secret_alias | string | `"client-secret-alias"` | Alias under which the client secret is stored in the vault for requesting OAuth2 access token for DIM access |
 | iatp.sts.oauth.token_url | string | `"wallet.local"` | URL where connectors can request OAuth2 access tokens for DIM access |
-| iatp.trustedIssuers | list | `[]` | Configures the trusted issuers for this runtime |
+| iatp.trustedIssuers | list | `[]` | Configures the trusted issuers for this runtime. If no supportedTypes are specified, the value defaults to "*" for that issuer |
 | imagePullSecrets | list | `[]` | Existing image pull secret to use to [obtain the container image from private registries](https://kubernetes.io/docs/concepts/containers/images/#using-a-private-registry) |
 | install.postgresql | bool | `true` | Deploying a PostgreSQL instance |
 | install.vault | bool | `true` | Deploying a HashiCorp Vault instance |
+| log4j2.config | string | `"Appenders:\n  Console:\n    name: CONSOLE\n    JsonTemplateLayout:\n      eventTemplate: |-\n        {\n          \"timestamp\": {\n            \"$resolver\": \"timestamp\",\n            \"pattern\": {\n              \"format\": \"yyyy-MM-dd'T'HH:mm:ss.SSSSSSS\",\n              \"timeZone\": \"UTC\"\n            }\n          },\n          \"level\": {\n            \"$resolver\": \"level\",\n            \"field\": \"severity\",\n            \"severity\": {\n              \"field\": \"keyword\"\n            }\n          },\n          \"message\": {\n            \"$resolver\": \"message\"\n          }\n        }\nLoggers:\n  Root:\n    level: \"OFF\"\n  Logger:\n    name: org.eclipse.edc.monitor.logger\n    level: DEBUG\n    AppenderRef:\n      ref: CONSOLE"` | Log4j2 configuration for json log formatting. |
+| log4j2.enableJsonLogs | bool | `true` | Whether to enable the json log config in log4j2.config |
 | nameOverride | string | `""` |  |
 | networkPolicy.controlplane | object | `{"from":[{"namespaceSelector":{}}]}` | Configuration of the controlplane component |
 | networkPolicy.controlplane.from | list | `[{"namespaceSelector":{}}]` | Specify from rule network policy for cp (defaults to all namespaces) |
 | networkPolicy.dataplane | object | `{"from":[{"namespaceSelector":{}}]}` | Configuration of the dataplane component |
 | networkPolicy.dataplane.from | list | `[{"namespaceSelector":{}}]` | Specify from rule network policy for dp (defaults to all namespaces) |
 | networkPolicy.enabled | bool | `false` | If `true` network policy will be created to restrict access to control- and dataplane |
+| participant.contextId | string | `"UUID CHANGEME"` | Participant Context Id - Newly introduced id for a connector instance (needed for multitenancy) |
 | participant.id | string | `"did:web:changeme"` | Participant DID Identifier of the connector |
 | postgresql.auth.database | string | `"edc"` |  |
 | postgresql.auth.password | string | `"password"` |  |
 | postgresql.auth.username | string | `"user"` |  |
+| postgresql.image.repository | string | `"bitnamilegacy/postgresql"` |  |
+| postgresql.image.tag | string | `"16.2.0-debian-12-r10"` |  |
 | postgresql.jdbcUrl | string | `"jdbc:postgresql://{{ .Release.Name }}-postgresql:5432/edc"` |  |
-| postgresql.primary.persistence.enabled | bool | `false` |  |
-| postgresql.readReplicas.persistence.enabled | bool | `false` |  |
+| postgresql.primary.persistence.enabled | bool | `true` |  |
+| postgresql.primary.persistence.size | string | `"4Gi"` |  |
+| postgresql.readReplicas.persistence.enabled | bool | `true` |  |
+| postgresql.readReplicas.persistence.size | string | `"4Gi"` |  |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
 | serviceAccount.create | bool | `true` | Specifies whether a service account should be created |
 | serviceAccount.imagePullSecrets | list | `[]` | Existing image pull secret bound to the service account to use to [obtain the container image from private registries](https://kubernetes.io/docs/concepts/containers/images/#using-a-private-registry) |
@@ -289,6 +299,7 @@ helm install my-release factory-x-contributions/factoryx-connector --version 0.1
 | tests.hookDeletePolicy | string | `"before-hook-creation,hook-succeeded"` | Configure the hook-delete-policy for Helm tests |
 | vault.hashicorp.healthCheck.enabled | bool | `true` |  |
 | vault.hashicorp.healthCheck.standbyOk | bool | `true` |  |
+| vault.hashicorp.paths.folder | string | `""` |  |
 | vault.hashicorp.paths.health | string | `"/v1/sys/health"` |  |
 | vault.hashicorp.paths.secret | string | `"/v1/secret"` |  |
 | vault.hashicorp.timeout | int | `30` |  |
